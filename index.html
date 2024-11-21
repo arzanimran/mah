@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App with Animation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #chat-container {
+            width: 80%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-out;
+            height: 80vh; /* Set fixed height */
+            display: flex;
+            flex-direction: column;
+        }
+
+        #username-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #username-container input {
+            padding: 10px;
+            width: 250px;
+            border-radius: 5px;
+            border: 2px solid #ccc;
+            font-size: 16px;
+        }
+
+        #username-container button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+            transition: background 0.3s ease;
+        }
+
+        #username-container button:hover {
+            background: #0056b3;
+        }
+
+        #messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            animation: fadeIn 2s ease-out;
+            padding-right: 10px;
+        }
+
+        #messages li {
+            padding: 10px;
+            background: #f4f4f4;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            max-width: 90%;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        img, video {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        #form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px; /* Space between input and buttons */
+        }
+
+        #send, #file-input-btn {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            margin-left: 10px; /* Space between send and file button */
+        }
+
+        #send:hover, #file-input-btn:hover {
+            background: #0056b3;
+        }
+
+        #file-input {
+            display: none; /* Hide the default file input */
+        }
+
+        #file-input-btn {
+            background: #28a745; /* Green for file button */
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .user-list {
+            padding: 10px;
+            background: #d1f7d1;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="username-container">
+            <input id="username" type="text" placeholder="Enter your name">
+            <button id="join-btn">Join Chat</button>
+        </div>
+        <div id="user-list"></div>
+        <ul id="messages"></ul>
+        <form id="form" style="display: none;">
+            <input id="input" autocomplete="off" placeholder="Type a message..." />
+            <button type="button" id="file-input-btn">Attach File</button>
+            <input type="file" id="file-input" accept="image/*,video/*" />
+            <button id="send">Send</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const fileInput = document.getElementById('file-input');
+        const fileInputBtn = document.getElementById('file-input-btn');
+        const messages = document.getElementById('messages');
+        const joinBtn = document.getElementById('join-btn');
+        const usernameInput = document.getElementById('username');
+        const usernameContainer = document.getElementById('username-container');
+        const userList = document.getElementById('user-list');
+
+        let username = '';
+
+        // Handle joining the chat
+        joinBtn.addEventListener('click', () => {
+            username = usernameInput.value.trim();
+            if (username) {
+                socket.emit('user join', username);
+                usernameContainer.style.display = 'none';
+                form.style.display = 'flex';
+            }
+        });
+
+        // Handle form submission (send message or file)
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (input.value) {
+                socket.emit('chat message', { type: 'text', content: input.value });
+                input.value = '';
+            }
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = () => {
+                    socket.emit('chat message', { type: 'file', content: reader.result, filename: file.name });
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = ''; // Reset the file input
+            }
+        });
+
+        // Open file input when 'Attach File' button is clicked
+        fileInputBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Receive a new chat message or media
+        socket.on('chat message', (msg) => {
+            const item = document.createElement('li');
+            
+            if (msg.type === 'text') {
+                item.textContent = msg.content;
+            } else if (msg.type === 'file') {
+                const mediaElement = document.createElement(msg.content.startsWith('data:image') ? 'img' : 'video');
+                mediaElement.src = msg.content;
+                mediaElement.controls = true;
+                mediaElement.width = 300;
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = msg.content;
+                downloadLink.download = msg.filename;
+                downloadLink.textContent = 'Download';
+                item.appendChild(mediaElement);
+                item.appendChild(downloadLink);
+            }
+
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        // Receive notifications about users joining or leaving
+        socket.on('user join', (users) => {
+            updateUserList(users);
+            const item = document.createElement('li');
+            item.textContent = `${username} joined the chat!`;
+            item.style.backgroundColor = '#d1f7d1';  // Green background for join
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        socket.on('user leave', (users) => {
+            updateUserList(users);
+            const item = document.createElement('li');
+            item.textContent = `${username} left the chat.`;
+            item.style.backgroundColor = '#f7d1d1';  // Red background for leave
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        // Update the user list in the UI
+        function updateUserList(users) {
+            userList.innerHTML = '<strong>Users connected:</strong>';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.classList.add('user-list');
+                userItem.textContent = user;
+                userList.appendChild(userItem);
+            });
+        }
+    </script>
+</body>
+</html>
