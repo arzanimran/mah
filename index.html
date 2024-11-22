@@ -132,7 +132,7 @@
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 
     <script>
-        /*const socket = io('http://localhost:5001');*/
+        const socket = io('http://localhost:5001');
         const form = document.getElementById('form');
         const input = document.getElementById('input');
         const fileInput = document.getElementById('file-input');
@@ -144,10 +144,7 @@
 
         let username = '';
 
-        // frontend JavaScript (in the browser)
-    const backendUrl = window.location.hostname === 'localhost' ? 'http://localhost:5001' : 'https://m2.com/admin/test/test/index/key/123XXXX';
-    const socket = io(backendUrl);
-
+        
 
         // Join chat
         joinBtn.addEventListener('click', () => {
