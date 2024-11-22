@@ -281,7 +281,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App with Animation</title>
+    <title>Chat App with Media Upload</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -293,7 +293,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
-            background-color: rgba(0, 0, 0, 0.543);
+            background-color: #121212;
         }
 
         #chat-container {
@@ -302,12 +302,12 @@
             background: #fff;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            animation: fadeIn 1s ease-out;
+            box-shadow: 0 0 20px rgba(58, 56, 56, 0.1);
             height: 80vh;
             display: flex;
             flex-direction: column;
-            background-color: rgba(156, 153, 153, 0.414);
+            background-color: #1E1E2C;
+            color: #fff;
         }
 
         #username-container {
@@ -333,38 +333,22 @@
             cursor: pointer;
             font-size: 16px;
             margin-left: 10px;
-            transition: background 0.3s ease;
-        }
-
-        #username-container button:hover {
-            background: #0056b3;
         }
 
         #messages {
             list-style: none;
             padding: 0;
-            margin-bottom: 20px;
+            margin: 0;
             flex-grow: 1;
             overflow-y: auto;
-            padding-right: 10px;
         }
 
         #messages li {
             padding: 10px;
-            background: #f4f4f4;
             margin-bottom: 10px;
             border-radius: 5px;
             max-width: 90%;
-            position: relative;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        .sender {
-            font-size: 12px;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 5px;
-            display: block;
+            word-wrap: break-word;
         }
 
         img, video {
@@ -384,10 +368,9 @@
             font-size: 16px;
             border: 2px solid #ccc;
             border-radius: 5px;
-            margin-right: 10px;
         }
 
-        #send {
+        #send, #file-input-btn {
             background: #007BFF;
             color: white;
             border: none;
@@ -395,38 +378,17 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
-            transition: background 0.3s ease;
+            margin-left: 10px;
         }
 
-        #send:hover {
-            background: #0056b3;
+        #file-input {
+            display: none;
         }
 
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-            }
-            100% {
-                opacity: 1;
-            }
+        #file-input-btn {
+            background: #28a745;
         }
 
-        @keyframes slideIn {
-            0% {
-                transform: translateX(-50px);
-                opacity: 0;
-            }
-            100% {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-
-        .notification {
-            background: #d1f7d1;
-            color: #555;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -438,6 +400,8 @@
         <ul id="messages"></ul>
         <form id="form" style="display: none;">
             <input id="input" autocomplete="off" placeholder="Type a message..." />
+            <input type="file" id="file-input" accept="image/*,video/*" />
+            <button type="button" id="file-input-btn">Attach File</button>
             <button id="send">Send</button>
         </form>
     </div>
@@ -447,6 +411,8 @@
         const socket = io();
         const form = document.getElementById('form');
         const input = document.getElementById('input');
+        const fileInput = document.getElementById('file-input');
+        const fileInputBtn = document.getElementById('file-input-btn');
         const messages = document.getElementById('messages');
         const joinBtn = document.getElementById('join-btn');
         const usernameInput = document.getElementById('username');
@@ -454,6 +420,7 @@
 
         let username = '';
 
+        // Join chat
         joinBtn.addEventListener('click', () => {
             username = usernameInput.value.trim();
             if (username) {
@@ -463,37 +430,51 @@
             }
         });
 
+        // Send messages and files
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             if (input.value) {
-                socket.emit('chat message', { sender: username, content: input.value });
+                socket.emit('chat message', { username, type: 'text', content: input.value });
                 input.value = '';
+            }
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = () => {
+                    socket.emit('chat message', {
+                        username,
+                        type: 'file',
+                        content: reader.result,
+                        filename: file.name,
+                    });
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = '';
             }
         });
 
+        fileInputBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Receive messages
         socket.on('chat message', (msg) => {
             const item = document.createElement('li');
-            const sender = document.createElement('span');
-            sender.className = 'sender';
-            sender.textContent = msg.sender;
-            item.textContent = msg.content;
-            item.prepend(sender);
-            messages.appendChild(item);
-            window.scrollTo(0, document.body.scrollHeight);
-        });
+            item.innerHTML = `<strong>${msg.username}:</strong> `;
 
-        socket.on('user join', (username) => {
-            const item = document.createElement('li');
-            item.textContent = `${username} joined the chat!`;
-            item.className = 'notification';
-            messages.appendChild(item);
-        });
+            if (msg.type === 'text') {
+                item.innerHTML += msg.content;
+            } else if (msg.type === 'file') {
+                const media = msg.content.startsWith('data:image') ? new Image() : document.createElement('video');
+                media.src = msg.content;
+                media.controls = true;
+                media.style.width = '100%';
+                item.appendChild(media);
+            }
 
-        socket.on('user leave', (username) => {
-            const item = document.createElement('li');
-            item.textContent = `${username} left the chat.`;
-            item.className = 'notification';
             messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
         });
     </script>
 </body>

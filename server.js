@@ -48,16 +48,21 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+app.use(express.static(path.join(__dirname)));
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-let users = {};
+let users = [];
 
 io.on('connection', (socket) => {
+    console.log('User connected');
+
     socket.on('user join', (username) => {
-        users[socket.id] = username;
-        io.emit('user join', username);
+        socket.username = username;
+        users.push(username);
+        io.emit('chat message', { username: 'System', type: 'text', content: `${username} joined the chat.` });
     });
 
     socket.on('chat message', (msg) => {
@@ -65,14 +70,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        const username = users[socket.id];
-        delete users[socket.id];
-        if (username) {
-            io.emit('user leave', username);
-        }
+        users = users.filter(user => user !== socket.username);
+        io.emit('chat message', { username: 'System', type: 'text', content: `${socket.username} left the chat.` });
     });
 });
 
 server.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
+    console.log('Server running on http://localhost:3000');
 });
