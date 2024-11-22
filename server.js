@@ -28,7 +28,7 @@ app.use(express.static(path.join(__dirname)));
 // Serve the HTML file
 app.post('/arzan', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
+}); 
 
 // Chat application logic
 let users = [];
