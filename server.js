@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 // Unified CORS Configuration
 const corsOptions = {
-    origin: 'http://localhost:5000', // Your client's URL
+    origin: 'http://localhost:5001', // Your client's URL
     methods: ["GET", "POST"]
 };
 
@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-server.listen(5000, () => {
-    console.log('Server is running on http://localhost:5000');
+server.listen(5001, () => {
+    console.log('Server is running on http://localhost:5001');
 });
 
