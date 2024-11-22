@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -15,6 +15,7 @@
             align-items: center;
             height: 100vh;
             overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.543);
         }
 
         #chat-container {
@@ -28,6 +29,7 @@
             height: 80vh; /* Set fixed height */
             display: flex;
             flex-direction: column;
+            background-color: rgba(156, 153, 153, 0.414);
         }
 
         #username-container {
@@ -270,6 +272,229 @@
                 userList.appendChild(userItem);
             });
         }
+    </script>
+</body>
+</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App with Animation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.543);
+        }
+
+        #chat-container {
+            width: 80%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-out;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(156, 153, 153, 0.414);
+        }
+
+        #username-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #username-container input {
+            padding: 10px;
+            width: 250px;
+            border-radius: 5px;
+            border: 2px solid #ccc;
+            font-size: 16px;
+        }
+
+        #username-container button {
+            padding: 10px 20px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+            transition: background 0.3s ease;
+        }
+
+        #username-container button:hover {
+            background: #0056b3;
+        }
+
+        #messages {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        #messages li {
+            padding: 10px;
+            background: #f4f4f4;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            max-width: 90%;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .sender {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        img, video {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        #form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #send {
+            background: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        #send:hover {
+            background: #0056b3;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateX(-50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification {
+            background: #d1f7d1;
+            color: #555;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="username-container">
+            <input id="username" type="text" placeholder="Enter your name">
+            <button id="join-btn">Join Chat</button>
+        </div>
+        <ul id="messages"></ul>
+        <form id="form" style="display: none;">
+            <input id="input" autocomplete="off" placeholder="Type a message..." />
+            <button id="send">Send</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+        const joinBtn = document.getElementById('join-btn');
+        const usernameInput = document.getElementById('username');
+        const usernameContainer = document.getElementById('username-container');
+
+        let username = '';
+
+        joinBtn.addEventListener('click', () => {
+            username = usernameInput.value.trim();
+            if (username) {
+                socket.emit('user join', username);
+                usernameContainer.style.display = 'none';
+                form.style.display = 'flex';
+            }
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('chat message', { sender: username, content: input.value });
+                input.value = '';
+            }
+        });
+
+        socket.on('chat message', (msg) => {
+            const item = document.createElement('li');
+            const sender = document.createElement('span');
+            sender.className = 'sender';
+            sender.textContent = msg.sender;
+            item.textContent = msg.content;
+            item.prepend(sender);
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+        socket.on('user join', (username) => {
+            const item = document.createElement('li');
+            item.textContent = `${username} joined the chat!`;
+            item.className = 'notification';
+            messages.appendChild(item);
+        });
+
+        socket.on('user leave', (username) => {
+            const item = document.createElement('li');
+            item.textContent = `${username} left the chat.`;
+            item.className = 'notification';
+            messages.appendChild(item);
+        });
     </script>
 </body>
 </html>

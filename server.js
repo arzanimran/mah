@@ -1,8 +1,7 @@
-const express = require('express');
+/*const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +34,44 @@ io.on('connection', (socket) => {
     });
 });
 
+
+server.listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
+});*/
+
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+let users = {};
+
+io.on('connection', (socket) => {
+    socket.on('user join', (username) => {
+        users[socket.id] = username;
+        io.emit('user join', username);
+    });
+
+    socket.on('chat message', (msg) => {
+        io.emit('chat message', msg);
+    });
+
+    socket.on('disconnect', () => {
+        const username = users[socket.id];
+        delete users[socket.id];
+        if (username) {
+            io.emit('user leave', username);
+        }
+    });
+});
 
 server.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
