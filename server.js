@@ -26,7 +26,7 @@ app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname)));
 
 // Serve the HTML file
-app.get('/', (req, res) => {
+app.post('/arzan', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
