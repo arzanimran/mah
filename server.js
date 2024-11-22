@@ -7,8 +7,6 @@ const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
-
-// Unified CORS Configuration
 const corsOptions = {
     origin: 'https://arzanimran.github.io',
     methods: ["GET", "POST"]
