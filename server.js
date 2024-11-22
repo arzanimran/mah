@@ -10,13 +10,14 @@ const server = http.createServer(app);
 
 // Unified CORS Configuration
 const corsOptions = {
-    origin: 'http://localhost:5001',
+    origin: 'https://arzanimran.github.io',
     methods: ["GET", "POST"]
 };
 
 const io = new Server(server, {
     cors: corsOptions
 });
+
 
 // Apply CORS middleware to the Express app
 app.use(cors(corsOptions));
