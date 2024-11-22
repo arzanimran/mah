@@ -6,7 +6,18 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 /*const io = new Server(server);*/
-const io = require('socket.io')(server);
+/*const io = require('socket.io')(server);*/
+
+const io = require('socket.io')(server, {
+    cors: {
+        origin: "http://localhost:5000", // Replace with your client's URL
+        methods: ["GET", "POST"]
+    }
+});
+
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+});
 
 
 app.use(express.static(path.join(__dirname)));
@@ -35,6 +46,7 @@ io.on('connection', (socket) => {
         io.emit('chat message', { username: 'System', type: 'text', content: `${socket.username} left the chat.` });
     });
 });
+
 
 server.listen(5000, () => {
     console.log('Server is running on http://localhost:5000');
