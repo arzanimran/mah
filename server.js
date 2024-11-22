@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 // Unified CORS Configuration
 const corsOptions = {
-    origin: 'https://arzanimran.github.io', // Your client's URL
+    origin: 'http://localhost:5000', // Your client's URL
     methods: ["GET", "POST"]
 };
 
