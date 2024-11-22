@@ -10,7 +10,7 @@ const server = http.createServer(app);
 
 // Unified CORS Configuration
 const corsOptions = {
-    origin: 'http://localhost:5001', // Your client's URL
+    origin: 'http://localhost:5001',
     methods: ["GET", "POST"]
 };
 
