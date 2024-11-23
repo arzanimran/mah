@@ -1,4 +1,3 @@
-
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -38,6 +37,7 @@ io.on('connection', (socket) => {
     socket.on('user join', (username) => {
         socket.username = username;
         users.push(username);
+        console.log(`User joined: ${username}, Socket ID: ${socket.id}`);
         io.emit('chat message', { username: 'System', type: 'text', content: `${username} joined the chat.` });
     });
 
