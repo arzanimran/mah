@@ -123,16 +123,18 @@
         <form id="form" style="display: none;">
             <input id="input" autocomplete="off" placeholder="Type a message..." />
             <input type="file" id="file-input" accept="image/*,video/*" />
+            <link rel="icon" href="favicon.ico" type="image/x-icon">
+
             <button type="button" id="file-input-btn">Attach File</button>
             <button id="send">Send</button>
         </form>
     </div>
 
-    <!--<script src="/socket.io/socket.io.js"></script>-->
-    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <!--<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>-->
 
     <script>
-        const socket = io('http://localhost:5001');
+        const socket = io();
         const form = document.getElementById('form');
         const input = document.getElementById('input');
         const fileInput = document.getElementById('file-input');

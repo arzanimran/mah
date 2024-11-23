@@ -24,7 +24,7 @@ app.use(cors(corsOptions));
 app.use(express.static(path.join(__dirname)));
 
 // Serve the HTML file
-app.post('/arzan', (req, res) => {
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 }); 
 
@@ -54,7 +54,6 @@ io.on('connection', (socket) => {
 });
 
 // Start the server
-server.listen(5001, () => {
-    console.log('Server is running on http://localhost:5001');
+server.listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
 });
-
